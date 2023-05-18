@@ -1,9 +1,32 @@
 package com.company;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
-    private static int BOARD_SIZE = 9;
+    private static int BOARD_SIZE = 8;
+    private static String whiteEmoji = "\u26AB";
+    private static String blackEmoji = "\u26AA";
+    private static int[][] botPositions = {
+            {0, 1},
+            {0, 3},
+            {0, 5},
+            {0, 7},
+            {1, 0},
+            {1, 2},
+            {1, 4},
+            {1, 6}
+    };
+    private static int[][] playerPositions = {
+            {6, 1},
+            {6, 3},
+            {6, 5},
+            {6, 7},
+            {7, 0},
+            {7, 2},
+            {7, 4},
+            {7, 6}
+    };
 
     public static void main(String[] args) {
 	    Scanner sc = new Scanner(System.in);
@@ -11,25 +34,36 @@ public class Main {
         buildBoard();
     }
 
-
     private static void buildBoard(){
-        int fullCount = 0;
-
         for (int row = 0; row < BOARD_SIZE; row++) {
-            System.out.println("-------------------------------------");
+            System.out.println("---------------------------------");
 
             for (int column = 0; column < BOARD_SIZE; column++) {
-                String emptyField = fullCount % 2 != 0 ? " " : "x";
+                String emptyField = row % 2 != 0 && column % 2 == 0 || row % 2 == 0 && column % 2 != 0 ? " " : "x";
+
+                int[] currentPos = {row, column};
+
+                for(int[] pos: botPositions){
+                    if(Arrays.equals(pos, currentPos)){
+                        emptyField = blackEmoji;
+                    }
+                }
+
+                for(int[] pos: playerPositions){
+                    if(Arrays.equals(pos, currentPos)){
+                        emptyField = whiteEmoji;
+                    }
+                }
+
 
                 System.out.print("| " + emptyField + " ");
-
-                fullCount++;
             }
 
             System.out.print("|");
             System.out.println();
         }
 
-        System.out.println("-------------------------------------");
+        System.out.println("---------------------------------");
+
     }
 }
