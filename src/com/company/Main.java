@@ -31,7 +31,10 @@ public class Main {
     public static void main(String[] args) {
 	    Scanner sc = new Scanner(System.in);
 
-        buildBoard();
+        for (int i = 0; i < 10; i++) {
+            buildBoard();
+            botPlay();
+        }
     }
 
     private static void buildBoard(){
@@ -44,14 +47,18 @@ public class Main {
                 int[] currentPos = {row, column};
 
                 for(int[] pos: botPositions){
-                    if(Arrays.equals(pos, currentPos)){
+                    if (Arrays.equals(pos, currentPos)) {
                         emptyField = blackEmoji;
+
+                        break;
                     }
                 }
 
                 for(int[] pos: playerPositions){
-                    if(Arrays.equals(pos, currentPos)){
-                        emptyField = whiteEmoji;
+                    if (Arrays.equals(pos, currentPos)) {
+//                        emptyField = whiteEmoji;
+
+                        break;
                     }
                 }
 
@@ -64,6 +71,44 @@ public class Main {
         }
 
         System.out.println("---------------------------------");
+    }
 
+
+    private static void botPlay(){
+//        System.out.println(Arrays.deepToString(botPositions));
+
+        // Go one step forward and one step to left/right side
+        int randomFigure;
+        int side;
+        int[] clonedBotPosition = new int[2];
+        boolean isBotCollision = false;
+
+        do {
+            randomFigure = (int) Math.floor(Math.random() * botPositions.length);
+            side = Math.random() < 0.5 ? -1 : 1;
+            if(botPositions[randomFigure][1] <= 0) side = 1;
+            if(botPositions[randomFigure][1] >= 7) side = -1;
+
+            System.arraycopy(botPositions[randomFigure], 0, clonedBotPosition, 0, 2);
+
+            clonedBotPosition[0]++;
+            clonedBotPosition[1] += side;
+
+            for(int[] pos : botPositions){
+                if (Arrays.equals(pos, clonedBotPosition)) {
+                    isBotCollision = true;
+                    break;
+                }
+                else{
+                    isBotCollision = false;
+                }
+            }
+        } while (isBotCollision || botPositions[randomFigure][0] >= 7);
+
+        botPositions[randomFigure][0]++;
+        botPositions[randomFigure][1] += side;
+
+//        System.out.println(Arrays.deepToString(botPositions));
+        System.out.println("-----");
     }
 }
