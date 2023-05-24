@@ -7,6 +7,8 @@ public class Main {
     private static int BOARD_SIZE = 8;
     private static String whiteEmoji = "\u26AB";
     private static String blackEmoji = "\u26AA";
+    private static String ANSI_RESET = "\u001B[0m";
+    private static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
     private static int[][] botPositions = {
             {0, 1},
             {0, 3},
@@ -27,17 +29,19 @@ public class Main {
             {7, 4},
             {7, 6}
     };
+    private static int[][] playerCanMove = new int[16][2];
 
     public static void main(String[] args) {
 	    Scanner sc = new Scanner(System.in);
 
-        for (int i = 0; i < 10; i++) {
-            buildBoard();
-            botPlay();
-        }
+        System.out.println(Arrays.deepToString(playerCanMove));
+        buildBoard();
     }
 
     private static void buildBoard(){
+        playerCanMove = new int[16][2];
+        int canCoordCount = 0;
+
         for (int row = 0; row < BOARD_SIZE; row++) {
             System.out.println("---------------------------------");
 
@@ -46,20 +50,43 @@ public class Main {
 
                 int[] currentPos = {row, column};
 
-                for(int[] pos: botPositions){
-                    if (Arrays.equals(pos, currentPos)) {
-                        emptyField = blackEmoji;
-
-                        break;
-                    }
+                if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
+                    emptyField = blackEmoji;
                 }
 
-                for(int[] pos: playerPositions){
-                    if (Arrays.equals(pos, currentPos)) {
-//                        emptyField = whiteEmoji;
+                if(Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
+                    emptyField = whiteEmoji;
+                }
 
-                        break;
-                    }
+
+                int[] cloneCurrentPos = new int[2];
+                System.arraycopy(currentPos, 0, cloneCurrentPos, 0, 2);
+                cloneCurrentPos[0]++; // move it forwards
+                cloneCurrentPos[1]++; // move it to the right
+
+                if(
+                        Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
+                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
+                ){
+                    emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+
+                    playerCanMove[canCoordCount] = currentPos;
+
+                    canCoordCount++;
+                }
+
+                cloneCurrentPos[1] -= 2; // Move it to the left
+
+                if(
+                        Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
+                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos)) &&
+                        Arrays.stream(playerCanMove).noneMatch(pos -> Arrays.equals(pos, currentPos))
+                ){
+                    emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+
+                    playerCanMove[canCoordCount] = currentPos;
+
+                    canCoordCount++;
                 }
 
 
@@ -71,6 +98,9 @@ public class Main {
         }
 
         System.out.println("---------------------------------");
+
+
+        System.out.println(Arrays.deepToString(playerCanMove));
     }
 
 
