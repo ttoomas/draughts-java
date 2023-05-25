@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
@@ -27,15 +28,17 @@ public class Main {
             {7, 0},
             {7, 2},
             {7, 4},
-            {7, 6}
+            {7, 6},
     };
     private static int[][] playerCanMove = new int[16][2];
+    private static String currentMove = "bot";
 
     public static void main(String[] args) {
 	    Scanner sc = new Scanner(System.in);
 
         System.out.println(Arrays.deepToString(playerCanMove));
-        buildBoard();
+//        buildBoard();
+        collisionDetection();
     }
 
     private static void buildBoard(){
@@ -50,6 +53,7 @@ public class Main {
 
                 int[] currentPos = {row, column};
 
+                // Place figures onto board
                 if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
                     emptyField = blackEmoji;
                 }
@@ -106,6 +110,7 @@ public class Main {
 
     private static void botPlay(){
 //        System.out.println(Arrays.deepToString(botPositions));
+        currentMove = "bot";
 
         // Go one step forward and one step to left/right side
         int randomFigure;
@@ -140,5 +145,51 @@ public class Main {
 
 //        System.out.println(Arrays.deepToString(botPositions));
         System.out.println("-----");
+    }
+
+
+    private static void collisionDetection(){
+        int index = 0;
+
+        if(Objects.equals(currentMove, "player")){
+            // Player figure deleted bot figure
+            int[][] newRemArr = new int[botPositions.length - 1][2];
+
+            for (int[] botPos: botPositions){
+                index++;
+
+                if(Arrays.stream(playerPositions).noneMatch(playerPos -> Arrays.equals(playerPos, botPos))) continue;
+
+                for (int i = 0, k = 0; i < botPositions.length; i++) {
+                    if(i == index - 1) continue;
+
+                    newRemArr[k++] = botPositions[i];
+                }
+                botPositions = newRemArr;
+
+                System.out.println("bot pos removed");
+                System.out.println(Arrays.deepToString(botPositions));
+            }
+        }
+        else{
+            // Bot figure deleted player figure
+            int[][] newRemArr = new int[playerPositions.length - 1][2];
+
+            for (int[] playerPos: playerPositions){
+                index++;
+
+                if(Arrays.stream(botPositions).noneMatch(botPos -> Arrays.equals(botPos, playerPos))) continue;
+
+                for (int i = 0, k = 0; i < playerPositions.length; i++) {
+                    if(i == index - 1) continue;
+
+                    newRemArr[k++] = playerPositions[i];
+                }
+                playerPositions = newRemArr;
+
+                System.out.println("player pos removed");
+                System.out.println(Arrays.deepToString(playerPositions));
+            }
+        }
     }
 }
