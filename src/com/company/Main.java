@@ -31,14 +31,43 @@ public class Main {
             {7, 6},
     };
     private static int[][] playerCanMove = new int[16][2];
-    private static String currentMove = "bot";
+    private static String currentMove = "player";
+    private static boolean gameEnded = true;
 
     public static void main(String[] args) {
 	    Scanner sc = new Scanner(System.in);
 
-        System.out.println(Arrays.deepToString(playerCanMove));
-//        buildBoard();
-        collisionDetection();
+        // Build board, select figure you want to move with, select destination where you want the figure
+        // player move, check collision, bot move, check collision, build board -> -> ->
+        buildBoard();
+        do {
+            buildBoard();
+
+            System.out.println("Now is player's turn");
+
+            boolean playerRightCoord = false;
+            int[] newPos = new int[2];
+
+            do {
+                System.out.print("Enter Y coordinate: ");
+                int yCoord = sc.nextInt();
+                sc.nextLine();
+
+                System.out.print("Enter X Coordinate: ");
+                int xCoord = sc.nextInt();
+                sc.nextLine();
+
+                newPos[0] = yCoord;
+                newPos[1] = xCoord;
+
+                if(Arrays.stream(playerCanMove).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
+                    playerRightCoord = true;
+                }
+                else{
+                    System.out.println("Wrong coordinates, please try it again");
+                }
+            } while (!playerRightCoord);
+        } while (!gameEnded);
     }
 
     private static void buildBoard(){
@@ -103,8 +132,7 @@ public class Main {
 
         System.out.println("---------------------------------");
 
-
-        System.out.println(Arrays.deepToString(playerCanMove));
+        System.out.println(playerCanMove);
     }
 
 
@@ -166,9 +194,6 @@ public class Main {
                     newRemArr[k++] = botPositions[i];
                 }
                 botPositions = newRemArr;
-
-                System.out.println("bot pos removed");
-                System.out.println(Arrays.deepToString(botPositions));
             }
         }
         else{
@@ -186,9 +211,6 @@ public class Main {
                     newRemArr[k++] = playerPositions[i];
                 }
                 playerPositions = newRemArr;
-
-                System.out.println("player pos removed");
-                System.out.println(Arrays.deepToString(playerPositions));
             }
         }
     }
