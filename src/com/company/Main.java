@@ -1,5 +1,6 @@
 package com.company;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -31,53 +32,56 @@ public class Main {
             {7, 6},
     };
     private static int[][] playerCanMove = new int[16][2];
+    private static int[][] playerCanMoveFigures = new int[16][2];
     private static String currentMove = "player";
     private static boolean gameEnded = true;
 
     public static void main(String[] args) {
-	    Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
         // Build board, select figure you want to move with, select destination where you want the figure
         // player move, check collision, bot move, check collision, build board -> -> ->
         buildBoard();
-        do {
-            buildBoard();
-
-            System.out.println("Now is player's turn");
-
-            boolean playerRightCoord = false;
-            int[] newPos = new int[2];
-
-            do {
-                System.out.print("Enter Y coordinate: ");
-                int yCoord = sc.nextInt();
-                sc.nextLine();
-
-                System.out.print("Enter X Coordinate: ");
-                int xCoord = sc.nextInt();
-                sc.nextLine();
-
-                newPos[0] = yCoord;
-                newPos[1] = xCoord;
-
-                if(Arrays.stream(playerCanMove).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
-                    playerRightCoord = true;
-                }
-                else{
-                    System.out.println("Wrong coordinates, please try it again");
-                }
-            } while (!playerRightCoord);
-        } while (!gameEnded);
+//        do {
+//            buildBoard();
+//
+//            System.out.println("Now is player's turn");
+//
+//            boolean playerRightCoord = false;
+//            int[] newPos = new int[2];
+//
+//            do {
+//                System.out.print("Enter Y coordinate: ");
+//                int yCoord = sc.nextInt();
+//                sc.nextLine();
+//
+//                System.out.print("Enter X Coordinate: ");
+//                int xCoord = sc.nextInt();
+//                sc.nextLine();
+//
+//                newPos[0] = yCoord;
+//                newPos[1] = xCoord;
+//
+//                if(Arrays.stream(playerCanMove).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
+//                    playerRightCoord = true;
+//                }
+//                else{
+//                    System.out.println("Wrong coordinates, please try it again");
+//                }
+//            } while (!playerRightCoord);
+//        } while (!gameEnded);
     }
 
     private static void buildBoard(){
         playerCanMove = new int[16][2];
         int canCoordCount = 0;
+        int[] cloneCurrentPos = new int[2];
 
         for (int row = 0; row < BOARD_SIZE; row++) {
             System.out.println("---------------------------------");
 
             for (int column = 0; column < BOARD_SIZE; column++) {
+
                 String emptyField = row % 2 != 0 && column % 2 == 0 || row % 2 == 0 && column % 2 != 0 ? " " : "x";
 
                 int[] currentPos = {row, column};
@@ -91,8 +95,6 @@ public class Main {
                     emptyField = whiteEmoji;
                 }
 
-
-                int[] cloneCurrentPos = new int[2];
                 System.arraycopy(currentPos, 0, cloneCurrentPos, 0, 2);
                 cloneCurrentPos[0]++; // move it forwards
                 cloneCurrentPos[1]++; // move it to the right
@@ -103,24 +105,35 @@ public class Main {
                 ){
                     emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
 
-                    playerCanMove[canCoordCount] = currentPos;
+                    playerCanMove[canCoordCount][0] = currentPos[0];
+                    playerCanMove[canCoordCount][1] = currentPos[1];
+
+                    playerCanMoveFigures[canCoordCount][0] = cloneCurrentPos[0];
+                    playerCanMoveFigures[canCoordCount][1] = cloneCurrentPos[1];
 
                     canCoordCount++;
                 }
+
 
                 cloneCurrentPos[1] -= 2; // Move it to the left
 
                 if(
                         Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
-                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos)) &&
-                        Arrays.stream(playerCanMove).noneMatch(pos -> Arrays.equals(pos, currentPos))
+                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
                 ){
                     emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
 
-                    playerCanMove[canCoordCount] = currentPos;
+                    playerCanMove[canCoordCount][0] = currentPos[0];
+                    playerCanMove[canCoordCount][1] = currentPos[1];
+
+                    playerCanMoveFigures[canCoordCount][0] = cloneCurrentPos[0];
+                    playerCanMoveFigures[canCoordCount][1] = cloneCurrentPos[1];
 
                     canCoordCount++;
                 }
+
+                cloneCurrentPos[0] = 0;
+                cloneCurrentPos[1] = 0;
 
 
                 System.out.print("| " + emptyField + " ");
@@ -132,7 +145,8 @@ public class Main {
 
         System.out.println("---------------------------------");
 
-        System.out.println(playerCanMove);
+        System.out.println(Arrays.deepToString(playerCanMove));
+        System.out.println(Arrays.deepToString(playerCanMoveFigures));
     }
 
 
