@@ -1,6 +1,5 @@
 package com.company;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -11,6 +10,8 @@ public class Main {
     private static String blackEmoji = "\u26AA";
     private static String ANSI_RESET = "\u001B[0m";
     private static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+    private static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+    private static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
     private static int[][] botPositions = {
             {0, 1},
             {0, 3},
@@ -34,42 +35,133 @@ public class Main {
     private static int[][] playerCanMove = new int[16][2];
     private static int[][] playerCanMoveFigures = new int[16][2];
     private static String currentMove = "player";
-    private static boolean gameEnded = true;
+    private static boolean gameEnded = false;
+    private static boolean selectedFigure = false;
+    private static int[] figureMoveCoods = new int[2];
+    private static int[][] canMoveToCoords = new int[2][2];
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
 
         // Build board, select figure you want to move with, select destination where you want the figure
         // player move, check collision, bot move, check collision, build board -> -> ->
-        buildBoard();
-//        do {
-//            buildBoard();
-//
-//            System.out.println("Now is player's turn");
-//
-//            boolean playerRightCoord = false;
-//            int[] newPos = new int[2];
-//
-//            do {
-//                System.out.print("Enter Y coordinate: ");
-//                int yCoord = sc.nextInt();
-//                sc.nextLine();
-//
-//                System.out.print("Enter X Coordinate: ");
-//                int xCoord = sc.nextInt();
-//                sc.nextLine();
-//
-//                newPos[0] = yCoord;
-//                newPos[1] = xCoord;
-//
-//                if(Arrays.stream(playerCanMove).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
-//                    playerRightCoord = true;
-//                }
-//                else{
-//                    System.out.println("Wrong coordinates, please try it again");
-//                }
-//            } while (!playerRightCoord);
-//        } while (!gameEnded);
+        do {
+            // Reset variables
+            playerCanMove = new int[16][2];
+            playerCanMoveFigures = new int[16][2];
+            selectedFigure = false;
+            figureMoveCoods = new int[2];
+            canMoveToCoords = new int[2][2];
+
+            canMoveToCoords[0][0] = -1;
+            canMoveToCoords[1][0] = -1;
+
+            // Player's turn
+            buildBoard();
+
+            System.out.println("Now is player's turn");
+
+            // Figure you want to move
+            System.out.println("Enter coordinates of figure you want to move");
+
+            do {
+                System.out.print("Enter Y Coordinate: ");
+                int figureYCoord = sc.nextInt();
+                sc.nextLine();
+                if(figureYCoord < 0 || figureYCoord > 7){
+                    System.out.println("Y Coordinate is out of bound, bust be between 0 and 7. Try it again!");
+
+                    continue;
+                }
+
+                System.out.print("Enter X Coordinate: ");
+                int figureXCoord = sc.nextInt();
+                sc.nextLine();
+                if(figureXCoord < 0 || figureXCoord > 7){
+                    System.out.println("X Coordinate is out of bound, bust be between 0 and 7. Try it again!");
+
+                    continue;
+                }
+
+                figureMoveCoods[0] = figureYCoord;
+                figureMoveCoods[1] = figureXCoord;
+
+                if(Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, figureMoveCoods))){
+                    selectedFigure = true;
+                }
+                else{
+                    System.out.println("You selected a wrong coordinates, please try it again");
+                }
+            } while (!selectedFigure);
+
+            // select positions you can move to
+            for (int i = 0; i < playerCanMoveFigures.length; i++) {
+                if(Arrays.equals(playerCanMoveFigures[i], figureMoveCoods)){
+                    if(canMoveToCoords[0][0] == -1){
+                        canMoveToCoords[0] = playerCanMove[i];
+                    }
+                    else{
+                        canMoveToCoords[1] = playerCanMove[i];
+                    }
+                }
+            }
+
+            if(canMoveToCoords[1][0] == -1) canMoveToCoords = new int[][]{canMoveToCoords[0]};
+
+            buildBoard();
+
+
+            // New coordinates
+            boolean playerRightCoord = false;
+            int[] newPos = new int[2];
+
+            System.out.println("Now select new coordinates of selected figure");
+
+            do {
+                System.out.print("Enter Y coordinate: ");
+                int newYCoord = sc.nextInt();
+                sc.nextLine();
+                if(newYCoord < 0 || newYCoord > 7){
+                    System.out.println("Y Coordinate is out of bound, bust be between 0 and 7. Try it again!");
+
+                    continue;
+                }
+
+                System.out.print("Enter X Coordinate: ");
+                int newXCoord = sc.nextInt();
+                sc.nextLine();
+                if(newXCoord < 0 || newXCoord > 7){
+                    System.out.println("X Coordinate is out of bound, bust be between 0 and 7. Try it again!");
+
+                    continue;
+                }
+
+                newPos[0] = newYCoord;
+                newPos[1] = newXCoord;
+
+                if(Arrays.stream(canMoveToCoords).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
+                    playerRightCoord = true;
+                }
+                else{
+                    System.out.println("Your selected a Wrong coordinates, please try it again");
+                }
+            } while (!playerRightCoord);
+
+
+            // Find index of selected figure and update it to the new positions
+            int figureIndex = -1;
+
+            for (int i = 0; i < playerPositions.length; i++) {
+                if(Arrays.equals(playerPositions[i], figureMoveCoods)){
+                    figureIndex = i;
+
+                    break;
+                }
+            }
+
+            playerPositions[figureIndex][0] = newPos[0];
+            playerPositions[figureIndex][1] = newPos[1];
+        } while (!gameEnded);
     }
 
     private static void buildBoard(){
@@ -86,15 +178,7 @@ public class Main {
 
                 int[] currentPos = {row, column};
 
-                // Place figures onto board
-                if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
-                    emptyField = blackEmoji;
-                }
-
-                if(Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
-                    emptyField = whiteEmoji;
-                }
-
+                // Check where figures can move
                 System.arraycopy(currentPos, 0, cloneCurrentPos, 0, 2);
                 cloneCurrentPos[0]++; // move it forwards
                 cloneCurrentPos[1]++; // move it to the right
@@ -103,7 +187,15 @@ public class Main {
                         Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
                         Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
                 ){
-                    emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                    if(Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
+                        emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
+                    }
+                    else if(canMoveToCoords[0][0] != -1){
+                        emptyField = " ";
+                    }
+                    else{
+                        emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                    }
 
                     playerCanMove[canCoordCount][0] = currentPos[0];
                     playerCanMove[canCoordCount][1] = currentPos[1];
@@ -121,7 +213,15 @@ public class Main {
                         Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
                         Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
                 ){
-                    emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                    if(Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
+                        emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
+                    }
+                    else if(canMoveToCoords[0][0] != -1){
+                        emptyField = " ";
+                    }
+                    else{
+                        emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                    }
 
                     playerCanMove[canCoordCount][0] = currentPos[0];
                     playerCanMove[canCoordCount][1] = currentPos[1];
@@ -130,6 +230,23 @@ public class Main {
                     playerCanMoveFigures[canCoordCount][1] = cloneCurrentPos[1];
 
                     canCoordCount++;
+                }
+
+                // Place figures onto board
+                if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
+                    emptyField = blackEmoji;
+                }
+
+                if(Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
+                    if(selectedFigure && Arrays.equals(figureMoveCoods, currentPos)){
+                        emptyField = ANSI_PURPLE_BACKGROUND + whiteEmoji + ANSI_RESET;
+                    }
+                    else if(!selectedFigure && Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, currentPos))){
+                        emptyField = ANSI_YELLOW_BACKGROUND + whiteEmoji + ANSI_RESET;
+                    }
+                    else{
+                        emptyField = whiteEmoji;
+                    }
                 }
 
                 cloneCurrentPos[0] = 0;
@@ -144,9 +261,6 @@ public class Main {
         }
 
         System.out.println("---------------------------------");
-
-        System.out.println(Arrays.deepToString(playerCanMove));
-        System.out.println(Arrays.deepToString(playerCanMoveFigures));
     }
 
 
