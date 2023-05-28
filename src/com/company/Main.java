@@ -12,6 +12,7 @@ public class Main {
     private static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
     private static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
     private static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+    private static String ANSI_RED_BACKGROUND = "\u001B[41m";
     private static int[][] botPositions = {
             {0, 1},
             {0, 3},
@@ -19,8 +20,10 @@ public class Main {
             {0, 7},
             {1, 0},
             {1, 2},
-            {1, 4},
-            {1, 6}
+//            {1, 4},
+//            {1, 6}
+            {5, 0},
+            {5, 6}
     };
     private static int[][] playerPositions = {
             {6, 1},
@@ -32,6 +35,7 @@ public class Main {
             {7, 4},
             {7, 6},
     };
+    private static int[][] playerMustMove = new int[8][2];
     private static int[][] playerCanMove = new int[16][2];
     private static int[][] playerCanMoveFigures = new int[16][2];
     private static String currentMove = "player";
@@ -47,14 +51,47 @@ public class Main {
         // player move, check collision, bot move, check collision, build board -> -> ->
         do {
             // Reset variables
+            playerMustMove = new int[8][2];
             playerCanMove = new int[16][2];
             playerCanMoveFigures = new int[16][2];
             selectedFigure = false;
             figureMoveCoods = new int[2];
             canMoveToCoords = new int[2][2];
 
+            for(int[] mustPos : playerMustMove){
+                mustPos[0] = -1;
+            }
+
             canMoveToCoords[0][0] = -1;
             canMoveToCoords[1][0] = -1;
+
+            // check if there is any positions where figure must move
+            int mustMoveIndex = 0;
+
+            for (int[] playerPos : playerPositions){
+                int[] playerPosCopy = new int[2];
+                System.arraycopy(playerPos, 0, playerPosCopy, 0, 2);
+                playerPosCopy[0]--; // Forwards
+                playerPosCopy[1]++; // Left
+
+                if(Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, playerPosCopy))){
+                    playerMustMove[mustMoveIndex] = playerPos;
+
+                    mustMoveIndex++;
+                }
+
+                playerPosCopy[1] -= 2;
+
+                if(
+                    Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, playerPosCopy))
+                ){
+                    playerMustMove[mustMoveIndex] = playerPos;
+
+                    mustMoveIndex++;
+                }
+            }
+
+            System.out.println(Arrays.deepToString(playerMustMove));
 
             // Player's turn
             buildBoard();
@@ -107,6 +144,16 @@ public class Main {
             }
 
             if(canMoveToCoords[1][0] == -1) canMoveToCoords = new int[][]{canMoveToCoords[0]};
+
+            // If there is bot figure, leave only one position in array
+            if(
+                Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, canMoveToCoords[0]))
+            ){
+                canMoveToCoords = new int[][]{canMoveToCoords[0]};
+            }
+            else if(Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, canMoveToCoords[canMoveToCoords.length - 1]))){
+                canMoveToCoords = new int[][]{canMoveToCoords[canMoveToCoords.length - 1]};
+            }
 
             buildBoard();
 
@@ -161,6 +208,12 @@ public class Main {
 
             playerPositions[figureIndex][0] = newPos[0];
             playerPositions[figureIndex][1] = newPos[1];
+
+            collisionDetection();
+            botPlay();
+
+            System.out.println(playerPositions.length);
+            System.out.println(botPositions.length);
         } while (!gameEnded);
     }
 
@@ -193,7 +246,7 @@ public class Main {
                     else if(canMoveToCoords[0][0] != -1){
                         emptyField = " ";
                     }
-                    else{
+                    else if(playerMustMove[0][0] == -1){
                         emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
                     }
 
@@ -215,9 +268,6 @@ public class Main {
                 ){
                     if(Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
                         emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
-                    }
-                    else if(canMoveToCoords[0][0] != -1){
-                        emptyField = " ";
                     }
                     else{
                         emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
@@ -300,7 +350,9 @@ public class Main {
         botPositions[randomFigure][1] += side;
 
 //        System.out.println(Arrays.deepToString(botPositions));
-        System.out.println("-----");
+        collisionDetection();
+
+        currentMove = "player";
     }
 
 
