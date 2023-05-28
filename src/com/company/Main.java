@@ -22,8 +22,8 @@ public class Main {
             {1, 2},
 //            {1, 4},
 //            {1, 6}
-            {5, 0},
-            {5, 6}
+            {5, 4},
+            {5, 2}
     };
     private static int[][] playerPositions = {
             {6, 1},
@@ -36,6 +36,8 @@ public class Main {
             {7, 6},
     };
     private static int[][] playerMustMove = new int[8][2];
+    private static int[][] playerMustMoveTo = new int[8][2];
+    private static int[][] playerMustMoveToFinal = new int[2][2];
     private static int[][] playerCanMove = new int[16][2];
     private static int[][] playerCanMoveFigures = new int[16][2];
     private static String currentMove = "player";
@@ -52,16 +54,21 @@ public class Main {
         do {
             // Reset variables
             playerMustMove = new int[8][2];
+            playerMustMoveTo = new int[8][2];
+            playerMustMoveToFinal = new int[2][2];
             playerCanMove = new int[16][2];
             playerCanMoveFigures = new int[16][2];
             selectedFigure = false;
             figureMoveCoods = new int[2];
             canMoveToCoords = new int[2][2];
 
-            for(int[] mustPos : playerMustMove){
-                mustPos[0] = -1;
+            for (int i = 0; i < playerMustMove.length; i++) {
+                playerMustMove[i][0] = -1;
+                playerMustMoveTo[i][0] = -1;
             }
 
+            playerMustMoveToFinal[0][0] = -1;
+            playerMustMoveToFinal[1][0] = -1;
             canMoveToCoords[0][0] = -1;
             canMoveToCoords[1][0] = -1;
 
@@ -75,23 +82,25 @@ public class Main {
                 playerPosCopy[1]++; // Left
 
                 if(Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, playerPosCopy))){
-                    playerMustMove[mustMoveIndex] = playerPos;
+                    playerMustMove[mustMoveIndex][0] = playerPos[0];
+                    playerMustMove[mustMoveIndex][1] = playerPos[1];
+                    playerMustMoveTo[mustMoveIndex][0] = playerPosCopy[0];
+                    playerMustMoveTo[mustMoveIndex][1] = playerPosCopy[1];
 
                     mustMoveIndex++;
                 }
 
                 playerPosCopy[1] -= 2;
 
-                if(
-                    Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, playerPosCopy))
-                ){
-                    playerMustMove[mustMoveIndex] = playerPos;
+                if(Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, playerPosCopy))){
+                    playerMustMove[mustMoveIndex][0] = playerPos[0];
+                    playerMustMove[mustMoveIndex][1] = playerPos[1];
+                    playerMustMoveTo[mustMoveIndex][0] = playerPosCopy[0];
+                    playerMustMoveTo[mustMoveIndex][1] = playerPosCopy[1];
 
                     mustMoveIndex++;
                 }
             }
-
-            System.out.println(Arrays.deepToString(playerMustMove));
 
             // Player's turn
             buildBoard();
@@ -123,7 +132,10 @@ public class Main {
                 figureMoveCoods[0] = figureYCoord;
                 figureMoveCoods[1] = figureXCoord;
 
-                if(Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, figureMoveCoods))){
+                if(playerMustMove[0][0] != -1 && Arrays.stream(playerMustMove).anyMatch(mustPos -> Arrays.equals(mustPos, figureMoveCoods))){
+                    selectedFigure = true;
+                }
+                else if(playerMustMove[0][0] == -1 && Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, figureMoveCoods))){
                     selectedFigure = true;
                 }
                 else{
@@ -147,7 +159,7 @@ public class Main {
 
             // If there is bot figure, leave only one position in array
             if(
-                Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, canMoveToCoords[0]))
+                    Arrays.stream(botPositions).anyMatch(botPos -> Arrays.equals(botPos, canMoveToCoords[0]))
             ){
                 canMoveToCoords = new int[][]{canMoveToCoords[0]};
             }
@@ -155,8 +167,21 @@ public class Main {
                 canMoveToCoords = new int[][]{canMoveToCoords[canMoveToCoords.length - 1]};
             }
 
-            buildBoard();
+            // If there was position where player must go, update final variable
+            int finalMoveIndex = 0;
 
+            if(playerMustMove[0][0] != -1){
+                for (int i = 0; i < playerMustMove.length; i++) {
+                    if(Arrays.equals(playerMustMove[i], figureMoveCoods)){
+                        playerMustMoveToFinal[finalMoveIndex][0] = playerMustMoveTo[i][0];
+                        playerMustMoveToFinal[finalMoveIndex][1] = playerMustMoveTo[i][1];
+
+                        finalMoveIndex++;
+                    }
+                }
+            }
+
+            buildBoard();
 
             // New coordinates
             boolean playerRightCoord = false;
@@ -186,11 +211,21 @@ public class Main {
                 newPos[0] = newYCoord;
                 newPos[1] = newXCoord;
 
-                if(Arrays.stream(canMoveToCoords).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
-                    playerRightCoord = true;
+                if(playerMustMove[0][0] != -1){
+                    if(Arrays.stream(playerMustMoveToFinal).anyMatch(mustMovePos -> Arrays.equals(mustMovePos, newPos))){
+                        playerRightCoord = true;
+                    }
+                    else{
+                        System.out.println("Your selected a Wrong coordinates, please try it again");
+                    }
                 }
                 else{
-                    System.out.println("Your selected a Wrong coordinates, please try it again");
+                    if(Arrays.stream(canMoveToCoords).anyMatch(canCoord -> Arrays.equals(canCoord, newPos))){
+                        playerRightCoord = true;
+                    }
+                    else{
+                        System.out.println("Your selected a Wrong coordinates, please try it again");
+                    }
                 }
             } while (!playerRightCoord);
 
@@ -211,9 +246,6 @@ public class Main {
 
             collisionDetection();
             botPlay();
-
-            System.out.println(playerPositions.length);
-            System.out.println(botPositions.length);
         } while (!gameEnded);
     }
 
@@ -238,15 +270,34 @@ public class Main {
 
                 if(
                         Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
-                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
+                                Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
                 ){
-                    if(Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
+                    if(Arrays.stream(playerMustMoveTo).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
+                        if(!selectedFigure){
+                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                        }
+                        else if(Arrays.stream(playerMustMoveToFinal).anyMatch(mustFinalPos -> Arrays.equals(mustFinalPos, currentPos))){
+                            emptyField = ANSI_RED_BACKGROUND + blackEmoji + ANSI_RESET;
+                        }
+                        else{
+                            emptyField = blackEmoji;
+                        }
+
+
+                        cloneCurrentPos[0] = 0;
+                        cloneCurrentPos[1] = 0;
+
+                        playerCanMove[canCoordCount][0] = currentPos[0];
+                        playerCanMove[canCoordCount][1] = currentPos[1];
+
+                        System.out.print("| " + emptyField + " ");
+
+                        continue;
+                    }
+                    else if(playerMustMoveTo[0][0] == -1 && Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
                         emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
                     }
-                    else if(canMoveToCoords[0][0] != -1){
-                        emptyField = " ";
-                    }
-                    else if(playerMustMove[0][0] == -1){
+                    else if(!selectedFigure && playerMustMove[0][0] == -1){
                         emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
                     }
 
@@ -264,12 +315,32 @@ public class Main {
 
                 if(
                         Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, cloneCurrentPos)) &&
-                        Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
+                                Arrays.stream(playerPositions).noneMatch(pos -> Arrays.equals(pos, currentPos))
                 ){
-                    if(Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
+                    if(
+                            Arrays.stream(playerMustMoveTo).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))
+                    ){
+                        if(playerMustMoveTo[0][0] == -1){
+                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                        }
+                        else{
+                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                        }
+
+                        cloneCurrentPos[0] = 0;
+                        cloneCurrentPos[1] = 0;
+
+                        playerCanMove[canCoordCount][0] = currentPos[0];
+                        playerCanMove[canCoordCount][1] = currentPos[1];
+
+                        System.out.print("| " + emptyField + " ");
+
+                        continue;
+                    }
+                    else if(playerMustMoveTo[0][0] == -1 && Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
                         emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
                     }
-                    else{
+                    else if(!selectedFigure && playerMustMove[0][0] == -1){
                         emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
                     }
 
@@ -284,14 +355,22 @@ public class Main {
 
                 // Place figures onto board
                 if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
-                    emptyField = blackEmoji;
+                    if(Arrays.stream(playerMustMove).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
+                        emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                    }
+                    else{
+                        emptyField = blackEmoji;
+                    }
                 }
 
                 if(Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
                     if(selectedFigure && Arrays.equals(figureMoveCoods, currentPos)){
                         emptyField = ANSI_PURPLE_BACKGROUND + whiteEmoji + ANSI_RESET;
                     }
-                    else if(!selectedFigure && Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, currentPos))){
+                    else if(!selectedFigure && Arrays.stream(playerMustMove).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
+                        emptyField = ANSI_RED_BACKGROUND + whiteEmoji + ANSI_RESET;
+                    }
+                    else if(playerMustMove[0][0] == -1 && !selectedFigure && Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, currentPos))){
                         emptyField = ANSI_YELLOW_BACKGROUND + whiteEmoji + ANSI_RESET;
                     }
                     else{
@@ -301,7 +380,6 @@ public class Main {
 
                 cloneCurrentPos[0] = 0;
                 cloneCurrentPos[1] = 0;
-
 
                 System.out.print("| " + emptyField + " ");
             }
@@ -315,7 +393,6 @@ public class Main {
 
 
     private static void botPlay(){
-//        System.out.println(Arrays.deepToString(botPositions));
         currentMove = "bot";
 
         // Go one step forward and one step to left/right side
@@ -349,7 +426,6 @@ public class Main {
         botPositions[randomFigure][0]++;
         botPositions[randomFigure][1] += side;
 
-//        System.out.println(Arrays.deepToString(botPositions));
         collisionDetection();
 
         currentMove = "player";
