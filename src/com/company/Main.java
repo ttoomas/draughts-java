@@ -5,14 +5,14 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
-    private static int BOARD_SIZE = 8;
-    private static String whiteEmoji = "\u26AB";
-    private static String blackEmoji = "\u26AA";
-    private static String ANSI_RESET = "\u001B[0m";
-    private static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
-    private static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
-    private static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
-    private static String ANSI_RED_BACKGROUND = "\u001B[41m";
+    private final static int BOARD_SIZE = 8;
+    private final static String BLACK_EMOJI = " O ";
+    private final static String WHITE_EMOJI = " X ";
+    private final static String ANSI_RESET = "\u001B[0m";
+    private final static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+    private final static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+    private final static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+    private final static String ANSI_RED_BACKGROUND = "\u001B[41m";
     private static int[][] botPositions = {
             {0, 1},
             {0, 3},
@@ -20,10 +20,10 @@ public class Main {
             {0, 7},
             {1, 0},
             {1, 2},
-//            {1, 4},
-//            {1, 6}
-            {5, 4},
-            {5, 2}
+            {1, 4},
+            {1, 6}
+//            {5, 4},
+//            {5, 2}
     };
     private static int[][] playerPositions = {
             {6, 1},
@@ -258,8 +258,8 @@ public class Main {
             System.out.println("---------------------------------");
 
             for (int column = 0; column < BOARD_SIZE; column++) {
-
-                String emptyField = row % 2 != 0 && column % 2 == 0 || row % 2 == 0 && column % 2 != 0 ? " " : "x";
+                String rowTextIndex = column == 0 ? row + " " : "";
+                String emptyField = "   ";
 
                 int[] currentPos = {row, column};
 
@@ -274,13 +274,13 @@ public class Main {
                 ){
                     if(Arrays.stream(playerMustMoveTo).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
                         if(!selectedFigure){
-                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                            emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
                         }
                         else if(Arrays.stream(playerMustMoveToFinal).anyMatch(mustFinalPos -> Arrays.equals(mustFinalPos, currentPos))){
-                            emptyField = ANSI_RED_BACKGROUND + blackEmoji + ANSI_RESET;
+                            emptyField = ANSI_RED_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
                         }
                         else{
-                            emptyField = blackEmoji;
+                            emptyField = WHITE_EMOJI;
                         }
 
 
@@ -290,15 +290,15 @@ public class Main {
                         playerCanMove[canCoordCount][0] = currentPos[0];
                         playerCanMove[canCoordCount][1] = currentPos[1];
 
-                        System.out.print("| " + emptyField + " ");
+                        System.out.print(rowTextIndex + "|" + emptyField);
 
                         continue;
                     }
                     else if(playerMustMoveTo[0][0] == -1 && Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
-                        emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
+                        emptyField = ANSI_PURPLE_BACKGROUND + "   " + ANSI_RESET;
                     }
                     else if(!selectedFigure && playerMustMove[0][0] == -1){
-                        emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                        emptyField = ANSI_GREEN_BACKGROUND + "   " + ANSI_RESET;
                     }
 
                     playerCanMove[canCoordCount][0] = currentPos[0];
@@ -321,10 +321,10 @@ public class Main {
                             Arrays.stream(playerMustMoveTo).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))
                     ){
                         if(playerMustMoveTo[0][0] == -1){
-                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                            emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
                         }
                         else{
-                            emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                            emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
                         }
 
                         cloneCurrentPos[0] = 0;
@@ -333,15 +333,15 @@ public class Main {
                         playerCanMove[canCoordCount][0] = currentPos[0];
                         playerCanMove[canCoordCount][1] = currentPos[1];
 
-                        System.out.print("| " + emptyField + " ");
+                        System.out.print(rowTextIndex + "|" + emptyField);
 
                         continue;
                     }
                     else if(playerMustMoveTo[0][0] == -1 && Arrays.stream(canMoveToCoords).anyMatch(canPos -> Arrays.equals(canPos, currentPos))){
-                        emptyField = ANSI_PURPLE_BACKGROUND + " " + ANSI_RESET;
+                        emptyField = ANSI_PURPLE_BACKGROUND + "   " + ANSI_RESET;
                     }
                     else if(!selectedFigure && playerMustMove[0][0] == -1){
-                        emptyField = ANSI_GREEN_BACKGROUND + " " + ANSI_RESET;
+                        emptyField = ANSI_GREEN_BACKGROUND + "   " + ANSI_RESET;
                     }
 
                     playerCanMove[canCoordCount][0] = currentPos[0];
@@ -356,39 +356,39 @@ public class Main {
                 // Place figures onto board
                 if(Arrays.stream(botPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
                     if(Arrays.stream(playerMustMove).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
-                        emptyField = ANSI_PURPLE_BACKGROUND + blackEmoji + ANSI_RESET;
+                        emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
                     }
                     else{
-                        emptyField = blackEmoji;
+                        emptyField = WHITE_EMOJI;
                     }
                 }
 
                 if(Arrays.stream(playerPositions).anyMatch(pos -> Arrays.equals(pos, currentPos))){
                     if(selectedFigure && Arrays.equals(figureMoveCoods, currentPos)){
-                        emptyField = ANSI_PURPLE_BACKGROUND + whiteEmoji + ANSI_RESET;
+                        emptyField = ANSI_PURPLE_BACKGROUND + BLACK_EMOJI + ANSI_RESET;
                     }
                     else if(!selectedFigure && Arrays.stream(playerMustMove).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))){
-                        emptyField = ANSI_RED_BACKGROUND + whiteEmoji + ANSI_RESET;
+                        emptyField = ANSI_RED_BACKGROUND + BLACK_EMOJI + ANSI_RESET;
                     }
                     else if(playerMustMove[0][0] == -1 && !selectedFigure && Arrays.stream(playerCanMoveFigures).anyMatch(figurePos -> Arrays.equals(figurePos, currentPos))){
-                        emptyField = ANSI_YELLOW_BACKGROUND + whiteEmoji + ANSI_RESET;
+                        emptyField = ANSI_YELLOW_BACKGROUND + BLACK_EMOJI + ANSI_RESET;
                     }
                     else{
-                        emptyField = whiteEmoji;
+                        emptyField = BLACK_EMOJI;
                     }
                 }
 
                 cloneCurrentPos[0] = 0;
                 cloneCurrentPos[1] = 0;
 
-                System.out.print("| " + emptyField + " ");
+                System.out.print(rowTextIndex + "|" + emptyField);
             }
 
             System.out.print("|");
             System.out.println();
         }
 
-        System.out.println("---------------------------------");
+        System.out.println("----0---1---2---3---4---5---6---7--");
     }
 
 
