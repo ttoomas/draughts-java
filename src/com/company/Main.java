@@ -5,25 +5,27 @@ import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
-    private final static int BOARD_SIZE = 8;
-    private final static String BLACK_EMOJI = " O ";
-    private final static String WHITE_EMOJI = " X ";
-    private final static String ANSI_RESET = "\u001B[0m";
-    private final static String ANSI_GREEN_BACKGROUND = "\u001B[42m";
-    private final static String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
-    private final static String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
-    private final static String ANSI_RED_BACKGROUND = "\u001B[41m";
+    private static final int BOARD_SIZE = 8;
+    private static final String BLACK_EMOJI = " O ";
+    private static final String WHITE_EMOJI = " X ";
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_BLACK = "\u001B[30m";
+    private static final String ANSI_GREEN_BACKGROUND = "\u001B[42m";
+    private static final String ANSI_YELLOW_BACKGROUND = "\u001B[43m";
+    private static final String ANSI_PURPLE_BACKGROUND = "\u001B[45m";
+    private static final String ANSI_RED_BACKGROUND = "\u001B[41m";
+    private static final String LINE = "-----------------------------------";
     private static int[][] botPositions = {
-            {0, 1},
-            {0, 3},
-            {0, 5},
-            {0, 7},
-            {1, 0},
-            {1, 2},
-            {1, 4},
-            {1, 6}
-//            {5, 4},
-//            {5, 2}
+//            {0, 1},
+//            {0, 3},
+//            {0, 5},
+//            {0, 7},
+//            {1, 0},
+//            {1, 2},
+//            {1, 4},
+//            {1, 6}
+            {5, 4},
+            {5, 2}
     };
     private static int[][] playerPositions = {
             {6, 1},
@@ -35,6 +37,7 @@ public class Main {
             {7, 4},
             {7, 6},
     };
+    private static String playerName;
     private static int[][] playerMustMove = new int[8][2];
     private static int[][] playerMustMoveTo = new int[8][2];
     private static int[][] playerMustMoveToFinal = new int[2][2];
@@ -48,6 +51,23 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+
+        System.out.println("Welcome to a Draughts Game");
+        System.out.println("You will have 8 pieces of figures, that you can freely move around the board");
+        System.out.println("You can only move one figure at a time, one step forward and one step sideways");
+        System.out.println("You cannot enter a field on which you already have one piece. You can only walk forward, you cannot walk backwards");
+        System.out.println("If you get a figure before your opponent's, you are forced to knock it out");
+        System.out.println("You will play against a bot that will randomly choose its next positions");
+        System.out.print("Now, enter you name: ");
+
+        String rawPlayerName = sc.nextLine().trim().toLowerCase();
+        playerName = rawPlayerName.substring(0, 1).toUpperCase() + rawPlayerName.substring(1);
+
+        System.out.println(playerName + " Thanks for playing");
+        System.out.println("Enjoy the game!");
+
+        System.out.println(LINE);
+
 
         // Build board, select figure you want to move with, select destination where you want the figure
         // player move, check collision, bot move, check collision, build board -> -> ->
@@ -105,7 +125,7 @@ public class Main {
             // Player's turn
             buildBoard();
 
-            System.out.println("Now is player's turn");
+            System.out.println("Now is " + playerName + "'s turn");
 
             // Figure you want to move
             System.out.println("Enter coordinates of figure you want to move");
@@ -245,6 +265,25 @@ public class Main {
             playerPositions[figureIndex][1] = newPos[1];
 
             collisionDetection();
+
+            boolean isGameOver = checkGameEnd();
+
+            if(isGameOver){
+                System.out.println();
+                System.out.println();
+                System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  Congratulations, you won!  " + ANSI_RESET);
+                System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  At the end, you had " + playerPositions.length + " figures left  " + ANSI_RESET);
+
+                boolean playAgain = playAgain();
+
+                if(playAgain){
+                    continue;
+                }
+                else{
+                    break;
+                }
+            }
+
             botPlay();
         } while (!gameEnded);
     }
@@ -254,8 +293,10 @@ public class Main {
         int canCoordCount = 0;
         int[] cloneCurrentPos = new int[2];
 
+        System.out.println();
+
         for (int row = 0; row < BOARD_SIZE; row++) {
-            System.out.println("---------------------------------");
+            System.out.println(LINE);
 
             for (int column = 0; column < BOARD_SIZE; column++) {
                 String rowTextIndex = column == 0 ? row + " " : "";
@@ -389,11 +430,16 @@ public class Main {
         }
 
         System.out.println("----0---1---2---3---4---5---6---7--");
+
+        System.out.println();
     }
 
 
     private static void botPlay(){
         currentMove = "bot";
+
+        System.out.println();
+        System.out.println("Now it bot's turn");
 
         // Go one step forward and one step to left/right side
         int randomFigure;
@@ -426,7 +472,24 @@ public class Main {
         botPositions[randomFigure][0]++;
         botPositions[randomFigure][1] += side;
 
+
+        System.out.println("Bot selected figure in Y Coordinate: " + botPositions[randomFigure][0] + " And in X Coordinate: " + botPositions[randomFigure][1]);
+
         collisionDetection();
+
+        boolean isGameOver = checkGameEnd();
+
+        if(isGameOver){
+            System.out.println();
+            System.out.println();
+            System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  Unfortunately you lost, Bot won!  " + ANSI_RESET);
+            System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  At the end bot has " + botPositions.length + " figures left  " + ANSI_RESET);
+
+            gameEnded = true;
+
+            playAgain();
+        }
+
 
         currentMove = "player";
     }
@@ -449,8 +512,12 @@ public class Main {
 
                     newRemArr[k++] = botPositions[i];
                 }
+
                 botPositions = newRemArr;
             }
+
+            System.out.println();
+            System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  " + playerName + " hit Bot's figure  " + ANSI_RESET);
         }
         else{
             // Bot figure deleted player figure
@@ -466,8 +533,75 @@ public class Main {
 
                     newRemArr[k++] = playerPositions[i];
                 }
+
                 playerPositions = newRemArr;
             }
+
+            System.out.println();
+            System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  Bot hit " + playerName + "'s figure  " + ANSI_RESET);
+        }
+    }
+
+
+    private static boolean checkGameEnd(){
+        if(botPositions.length == 0 || playerPositions.length == 0){
+            // Game is over
+            gameEnded = true;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private static boolean playAgain(){
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println();
+        System.out.println("Do you want to play again? If yes, type 1, otherwise type 0");
+
+        int newGame = sc.nextInt();
+        sc.nextLine();
+
+        if(newGame == 1){
+            // Play again
+            gameEnded = false;
+
+            botPositions = new int[][]{
+                {0, 1},
+                {0, 3},
+                {0, 5},
+                {0, 7},
+                {1, 0},
+                {1, 2},
+                {1, 4},
+                {1, 6}
+            };
+            playerPositions = new int[][]{
+                    {6, 1},
+                    {6, 3},
+                    {6, 5},
+                    {6, 7},
+                    {7, 0},
+                    {7, 2},
+                    {7, 4},
+                    {7, 6},
+            };
+
+            currentMove = "player";
+
+            System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  You are playing from the beginning  " + ANSI_RESET);
+            System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  I assume you know the rules now  " + ANSI_RESET);
+            System.out.println(ANSI_BLACK + ANSI_YELLOW_BACKGROUND + "  Good Luck!  " + ANSI_RESET);
+            System.out.println();
+            System.out.println();
+
+            return true;
+        }
+        else{
+            System.out.println("Thanks, have a great day!");
+
+            return false;
         }
     }
 }
