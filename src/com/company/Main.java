@@ -361,12 +361,7 @@ public class Main {
                     if(
                             Arrays.stream(playerMustMoveTo).anyMatch(mustPos -> Arrays.equals(mustPos, currentPos))
                     ){
-                        if(playerMustMoveTo[0][0] == -1){
-                            emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
-                        }
-                        else{
-                            emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
-                        }
+                        emptyField = ANSI_PURPLE_BACKGROUND + WHITE_EMOJI + ANSI_RESET;
 
                         cloneCurrentPos[0] = 0;
                         cloneCurrentPos[1] = 0;
