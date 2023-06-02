@@ -492,6 +492,7 @@ public class Main {
 
     private static void collisionDetection(){
         int index = 0;
+        int indexCount = 0;
 
         if(Objects.equals(currentMove, "player")){
             // Player figure deleted bot figure
@@ -506,13 +507,16 @@ public class Main {
                     if(i == index - 1) continue;
 
                     newRemArr[k++] = botPositions[i];
+                    indexCount++;
                 }
 
                 botPositions = newRemArr;
             }
 
-            System.out.println();
-            System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  " + playerName + " hit Bot's figure  " + ANSI_RESET);
+            if(indexCount > 0){
+                System.out.println();
+                System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  " + playerName + " hit Bot's figure  " + ANSI_RESET);
+            }
         }
         else{
             // Bot figure deleted player figure
@@ -527,13 +531,16 @@ public class Main {
                     if(i == index - 1) continue;
 
                     newRemArr[k++] = playerPositions[i];
+                    indexCount++;
                 }
 
                 playerPositions = newRemArr;
             }
 
-            System.out.println();
-            System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  Bot hit " + playerName + "'s figure  " + ANSI_RESET);
+            if(indexCount > 0){
+                System.out.println();
+                System.out.println(ANSI_BLACK + ANSI_RED_BACKGROUND + "  Bot hit " + playerName + "'s figure  " + ANSI_RESET);
+            }
         }
     }
 
